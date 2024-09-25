@@ -8,7 +8,7 @@ RUN pip install --upgrade pip
 COPY requirements.txt /tmp/
 
 # Установка зависимостей из requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Создание рабочей директории
 WORKDIR /home/jovyan/work

@@ -13,7 +13,7 @@ RUN pip install mlflow==2.16.0
 COPY requirements.txt /tmp/
 
 # Установка зависимостей из requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Установка SQlite переменную
 ENV BACKEND_URI sqlite:///mlflow.db
