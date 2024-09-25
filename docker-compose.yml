@@ -81,6 +81,18 @@ services:
       - ./backend:/home/jovyan/work
     networks:
       - docker_network
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8001"
+    volumes:
+      - ./backend:/home/jovyan/work
+    networks:
+      - docker_network
 
   influxdb:
     image: influxdb:2.7.10
