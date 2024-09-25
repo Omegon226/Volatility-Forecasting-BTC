@@ -102,6 +102,27 @@ services:
     networks:
       - docker_network
 
+  migrationssrv:
+    build:
+      context: ./migrationssrv
+      dockerfile: Dockerfile
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=admin
+      - INFLUXDB_BUCKET=admin
+      - INFLUXDB_ORG=admin
+    depends_on:
+      - influxdb
+    networks:
+      - docker_network
+
   mlflow:
     build:
       context: ./mlflow
