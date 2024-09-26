@@ -167,3 +167,5 @@ mlflow/mlflow.db
 airflow/logs/scheduler/latest
 airflow/logs/dag_processor_manager/dag_processor_manager.log
 mlflow/mlflow.db
+/mlflow/mlartifacts
+/research/mlruns
