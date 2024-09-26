@@ -83,7 +83,7 @@ def main():
 
         # Преобразуем данные в DataFrame для расчета процентного изменения
         df = pd.DataFrame(ohlcv_list, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = df['timestamp'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1000))
+        df['timestamp'] = df['timestamp'].apply(lambda x: datetime.fromtimestamp(x / 1000))
         df.sort_values('timestamp', inplace=True)
         df.reset_index(drop=True, inplace=True)
 

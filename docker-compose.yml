@@ -88,9 +88,9 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8001"
+      - "8001:8501"
     volumes:
-      - ./backend:/home/jovyan/work
+      - ./frontend:/home/jovyan/work
     networks:
       - docker_network
 
