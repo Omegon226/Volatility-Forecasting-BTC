@@ -170,3 +170,4 @@ mlflow/mlflow.db
 /mlflow/mlartifacts
 /research/mlruns
 /backend/ml_models
+backend/forecast.png

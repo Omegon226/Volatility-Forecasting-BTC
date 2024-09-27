@@ -67,3 +67,31 @@ def get_pct_returns(count=300):
     client.close()
 
     return df
+
+
+def get_btc_usdt_data(count_of_points=300):
+    # Инициализация клиента
+    client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+
+    # Определение Flux запроса
+    flux_query = f'''
+        from(bucket: "admin")
+          |> range(start: -{count_of_points}h)  
+          |> filter(fn: (r) => r["_measurement"] == "btc_usdt")
+          |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+        '''
+
+    # Выполнение запроса
+    query_api = client.query_api()
+    df = query_api.query_data_frame(flux_query)
+    df = df.drop(columns=["result", "table", "_start", "_stop", "_measurement", "symbol"])
+    df = df.rename(columns={"_time": "date"})
+
+    # Обработка данных
+    df = df.drop_duplicates(subset=['date'], keep='last')
+    df = df.fillna(0)
+
+    # Закрытие клиента
+    client.close()
+
+    return df

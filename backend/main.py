@@ -4,11 +4,13 @@ import logging
 from core.init_app import init_ml_models_dir, init_retrain_all_models
 from api.endponts.forecast import router as forecast_router
 from api.endponts.retrain_ml_models import router as retrain_ml_models_router
+from api.endponts.get_btc_usdt_data import router as get_btc_usdt_data_router
 
 
 app = FastAPI(title="BTC-USDT Volatility forecast")
 app.include_router(forecast_router, prefix="/api", tags=["ml"])
 app.include_router(retrain_ml_models_router, prefix="/api", tags=["ml"])
+app.include_router(get_btc_usdt_data_router, prefix="/api", tags=["data"])
 
 # Подготовка приложения к работе
 init_ml_models_dir()
