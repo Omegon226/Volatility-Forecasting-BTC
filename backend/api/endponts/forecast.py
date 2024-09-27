@@ -13,7 +13,7 @@ from db.get_data_to_retrain_ml_models import get_pct_returns
 router = APIRouter(prefix="/forecast")
 
 
-@router.post("/arch/")
+@router.get("/arch/")
 def forecast_with_arch():
     df_now = get_pct_returns(300)
     df_forecast = make_forecast_with_arch()
@@ -23,7 +23,7 @@ def forecast_with_arch():
     }
 
 
-@router.post("/garch/")
+@router.get("/garch/")
 def forecast_with_garch():
     df_now = get_pct_returns(300)
     df_forecast = make_forecast_with_garch()
@@ -33,7 +33,7 @@ def forecast_with_garch():
     }
 
 
-@router.post("/svr/")
+@router.get("/svr/")
 def forecast_with_svr():
     df_now = get_pct_returns(300)
     df_forecast = make_forecast_with_svr()
@@ -43,7 +43,7 @@ def forecast_with_svr():
     }
 
 
-@router.post("/lightgbmregressor/")
+@router.get("/lightgbmregressor/")
 def forecast_with_lightgbmregressor():
     df_now = get_pct_returns(300)
     df_forecast = make_forecast_with_lgbmregressor()
@@ -52,7 +52,7 @@ def forecast_with_lightgbmregressor():
         "forecast": df_forecast.to_dict(orient='records'),
     }
 
-@router.post("/knn/")
+@router.get("/knn/")
 def forecast_with_knn():
     df_now = get_pct_returns(300)
     df_forecast = make_forecast_with_knn()
