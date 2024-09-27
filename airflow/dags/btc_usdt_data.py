@@ -8,6 +8,7 @@ import os
 import logging
 import pandas as pd
 
+
 # Параметры DAG
 default_args = {
     'owner': 'airflow',

@@ -13,8 +13,10 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # Создание рабочей директории
 WORKDIR /home/jovyan/work
 
+COPY . .
+
 # Expose the webserver port
 EXPOSE 8000
 
-# Запуск JupyterLab
-#CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''"]
+# Команда для запуска приложения
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
