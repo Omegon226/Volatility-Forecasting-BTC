@@ -40,12 +40,24 @@ def get_data_for_forecast_page(model="arch"):
         df_forecast_norm.iloc[:, 3] = last_close_price * (1 + df_forecast_norm.iloc[:, 3] / 100).cumprod()
         df_forecast_norm.iloc[:, 4] = last_close_price * (1 + df_forecast_norm.iloc[:, 4] / 100).cumprod()
         df_forecast_norm.iloc[:, 5] = last_close_price * (1 + df_forecast_norm.iloc[:, 5] / 100).cumprod()
+        df_forecast_norm.iloc[:, 6] = last_close_price * (1 + df_forecast_norm.iloc[:, 6] / 100).cumprod()
+        df_forecast_norm.iloc[:, 7] = last_close_price * (1 + df_forecast_norm.iloc[:, 7] / 100).cumprod()
+        df_forecast_norm.iloc[:, 8] = last_close_price * (1 + df_forecast_norm.iloc[:, 8] / 100).cumprod()
+        df_forecast_norm.iloc[:, 9] = last_close_price * (1 + df_forecast_norm.iloc[:, 9] / 100).cumprod()
+        df_forecast_norm.iloc[:, 10] = last_close_price * (1 + df_forecast_norm.iloc[:, 10] / 100).cumprod()
+        df_forecast_norm.iloc[:, 11] = last_close_price * (1 + df_forecast_norm.iloc[:, 11] / 100).cumprod()
     elif model in ["knn", "svr", "lightgbmregressor"]:
         df_forecast_norm.iloc[:, 2] = last_close_price * (1 + df_forecast_norm.iloc[:, 2] / 100).cumprod()
         df_forecast_norm.iloc[:, 3] = last_close_price * (1 + df_forecast_norm.iloc[:, 3] / 100).cumprod()
         df_forecast_norm.iloc[:, 4] = last_close_price * (1 + df_forecast_norm.iloc[:, 4] / 100).cumprod()
         df_forecast_norm.iloc[:, 5] = last_close_price * (1 + df_forecast_norm.iloc[:, 5] / 100).cumprod()
         df_forecast_norm.iloc[:, 6] = last_close_price * (1 + df_forecast_norm.iloc[:, 6] / 100).cumprod()
+        df_forecast_norm.iloc[:, 7] = last_close_price * (1 + df_forecast_norm.iloc[:, 7] / 100).cumprod()
+        df_forecast_norm.iloc[:, 8] = last_close_price * (1 + df_forecast_norm.iloc[:, 8] / 100).cumprod()
+        df_forecast_norm.iloc[:, 9] = last_close_price * (1 + df_forecast_norm.iloc[:, 9] / 100).cumprod()
+        df_forecast_norm.iloc[:, 10] = last_close_price * (1 + df_forecast_norm.iloc[:, 10] / 100).cumprod()
+        df_forecast_norm.iloc[:, 11] = last_close_price * (1 + df_forecast_norm.iloc[:, 11] / 100).cumprod()
+        df_forecast_norm.iloc[:, 12] = last_close_price * (1 + df_forecast_norm.iloc[:, 12] / 100).cumprod()
 
     return df_now, df_forecast, df_forecast_norm, df_btc_usdt
 

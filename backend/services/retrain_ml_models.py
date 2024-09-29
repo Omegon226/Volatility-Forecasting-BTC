@@ -79,7 +79,7 @@ def retrain_arch_model(train_df, test_df):
         model.fit(train_df)
 
         # Прогнозирование для test датасета
-        forecasts = model.forecast(48, level=[95, 90])
+        forecasts = model.forecast(48, level=[99, 95, 90, 75, 50])
         forecasts["unique_id"] = 1
 
         # Рассчёт метрик
@@ -99,7 +99,7 @@ def retrain_arch_model(train_df, test_df):
             pd.concat([train_df, test_df]),
             forecasts_df=forecasts,
             engine='matplotlib',
-            level=[95, 90],
+            level=[99, 95, 90, 75, 50],
         )
         fig.savefig('forecast.png', bbox_inches='tight')
         plt.close()
@@ -135,7 +135,7 @@ def retrain_garch_model(train_df, test_df):
         model.fit(train_df)
 
         # Прогнозирование для test датасета
-        forecasts = model.forecast(48, level=[95, 90])
+        forecasts = model.forecast(48, level=[99, 95, 90, 75, 50])
         forecasts["unique_id"] = 1
 
         # Рассчёт метрик
@@ -155,7 +155,7 @@ def retrain_garch_model(train_df, test_df):
             pd.concat([train_df, test_df]),
             forecasts_df=forecasts,
             engine='matplotlib',
-            level=[95, 90],
+            level=[99, 95, 90, 75, 50],
         )
         fig.savefig('forecast.png', bbox_inches='tight')
         plt.close()
@@ -189,11 +189,11 @@ def retrain_svr_model(train_df, test_df):
         )
 
         # Обучение моедли
-        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=2, h=48))
+        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=5, h=48))
 
         # Прогнозирование для test датасета
         # forecasts = model.predict(24, new_df=test_df)
-        forecasts = model.predict(48, level=[95, 90])
+        forecasts = model.predict(48, level=[99, 95, 90, 75, 50])
         forecasts["unique_id"] = 1
 
         # Рассчёт метрик
@@ -213,7 +213,7 @@ def retrain_svr_model(train_df, test_df):
             pd.concat([train_df, test_df]),
             forecasts_df=forecasts,
             engine='matplotlib',
-            level=[95, 90],
+            level=[99, 95, 90, 75, 50],
         )
         fig.savefig('forecast.png', bbox_inches='tight')
         plt.close()
@@ -250,11 +250,11 @@ def retrain_lgbmregressor(train_df, test_df):
         )
 
         # Обучение моедли
-        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=2, h=48))
+        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=5, h=48))
 
         # Прогнозирование для test датасета
         #forecasts = model.predict(24, new_df=test_df)
-        forecasts = model.predict(48, level=[95, 90])
+        forecasts = model.predict(48, level=[99, 95, 90, 75, 50])
         forecasts["unique_id"] = 1
 
         # Рассчёт метрик
@@ -274,7 +274,7 @@ def retrain_lgbmregressor(train_df, test_df):
             pd.concat([train_df, test_df]),
             forecasts_df=forecasts,
             engine='matplotlib',
-            level=[95, 90],
+            level=[99, 95, 90, 75, 50],
         )
         fig.savefig('forecast.png', bbox_inches='tight')
         plt.close()
@@ -308,11 +308,11 @@ def retrain_knn(train_df, test_df):
         )
 
         # Обучение моедли
-        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=2, h=48))
+        model.fit(train_df, prediction_intervals=PredictionIntervals(n_windows=5, h=48))
 
         # Прогнозирование для test датасета
         #forecasts = model.predict(24, new_df=test_df)
-        forecasts = model.predict(48, level=[95, 90])
+        forecasts = model.predict(48, level=[99, 95, 90, 75, 50])
         forecasts["unique_id"] = 1
 
         # Рассчёт метрик
@@ -332,7 +332,7 @@ def retrain_knn(train_df, test_df):
             pd.concat([train_df, test_df]),
             forecasts_df=forecasts,
             engine='matplotlib',
-            level=[95, 90],
+            level=[99, 95, 90, 75, 50],
         )
         fig.savefig('forecast.png', bbox_inches='tight')
         plt.close()

@@ -1,81 +1,41 @@
 import streamlit as st
-import plotly.graph_objects as go
-from utilsforecast.plotting import plot_series
 
 from logic.forecast_data import get_data_for_forecast_page
+from logic.plots import return_forecast_plot, close_forecast_plot, return_hist_plot
+from styles.page_style import set_page_config_wide, disable_header_and_footer
+from styles.sidebar_ref import make_refs_in_sidebar
 
 
-st.set_page_config(
-    page_title="BTC-USDT Volatility",
-    page_icon="📊",
-)
-
-st.markdown("# ARCH Forecast")
-
-if st.button("Make Forecast", key="ARCH_forecast", type="primary"):
-
+def make_forecast():
     df_now, df_forecast, df_forecast_norm, df_btc_usdt = get_data_for_forecast_page(model="arch")
 
     st.markdown(f"Спрогнозированная волатильность = {df_forecast.iloc[:, 1].std()} σ")
 
-    fig = plot_series(
-        df_now,
-        forecasts_df=df_forecast,
-        engine='plotly',
-        level=[95, 90],
-        target_col="close_pct_change"
-    )
+    st.plotly_chart(return_forecast_plot(df_now, df_forecast), use_container_width=True)
 
-    fig.update_layout(
-        height=400
-    )
+    st.plotly_chart(close_forecast_plot(df_btc_usdt, df_forecast_norm), use_container_width=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(return_hist_plot(df_forecast, model="arch"), use_container_width=True)
 
 
-    fig = plot_series(
-        df_btc_usdt,
-        forecasts_df=df_forecast_norm,
-        engine='plotly',
-        level=[95, 90],
-        target_col="close"
-    )
+def main():
+    # Настройка страницы
+    set_page_config_wide()
+    make_refs_in_sidebar()
+    disable_header_and_footer()
 
-    fig.update_layout(
-        height=400
-    )
+    st.markdown("# ARCH Forecast")
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.session_state.initialized = False
+
+    # Кнопка для перезапуска
+    if st.button("Перезапустить расчёты", key="ARCH_forecast", type="primary"):
+        make_forecast()
+
+    # Выполнение функции при первой загрузке страницы
+    if not st.session_state.initialized:
+        make_forecast()
+        st.session_state.initialized = True
 
 
-    x = df_forecast.iloc[:, 1]
-
-    hist = go.Histogram(
-        x=x,
-        nbinsx=30,
-        marker=dict(
-            color='rgba(135, 206, 250, 0.7)',
-            line=dict(
-                color='rgba(135, 206, 250, 1)',
-                width=1
-            )
-        )
-    )
-    fig = go.Figure(data=[hist])
-
-    # Обновление макета
-    fig.update_layout(
-        title='Гистограмма распределения данных',
-        xaxis_title='Значение',
-        yaxis_title='Частота',
-        bargap=0.2,  # Зазор между бинами
-        height=400,  # Высота графика в пикселях
-        template='plotly_dark',  # Белый фон
-        margin = dict(
-            l=50,  # Левый отступ
-            r=150,  # Правый отступ (увеличен для размещения легенды)
-            t=50,  # Верхний отступ
-            b=50  # Нижний отступ
-        )
-    )
-    st.plotly_chart(fig, use_container_width=True)
+main()

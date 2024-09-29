@@ -1,9 +1,12 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="BTC-USDT Volatility",
-    page_icon="📊",
-)
+from styles.page_style import set_page_config_centered, disable_header_and_footer
+from styles.sidebar_ref import make_refs_in_sidebar
+
+# Настройка страницы
+set_page_config_centered()
+make_refs_in_sidebar()
+disable_header_and_footer()
 
 st.markdown(
     """
