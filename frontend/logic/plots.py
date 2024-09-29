@@ -55,7 +55,6 @@ def return_hist_plot(df_forecast, model):
 
     # Обновление макета
     fig.update_layout(
-        title='Гистограмма распределения данных',
         xaxis_title='Значение',
         yaxis_title='Частота',
         bargap=0.2,  # Зазор между бинами

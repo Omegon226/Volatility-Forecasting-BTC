@@ -9,12 +9,40 @@ from styles.sidebar_ref import make_refs_in_sidebar
 def make_forecast():
     df_now, df_forecast, df_forecast_norm, df_btc_usdt = get_data_for_forecast_page(model="arch")
 
-    st.markdown(f"Спрогнозированная волатильность = {df_forecast.iloc[:, 1].std()} σ")
+    st.markdown(f"""
+        #### Спрогнозированная волатильность = {df_forecast.iloc[:, 1].std()} σ
+    """)
+    st.markdown(r"""
+        Для оценки волатильности мы используем **стандартное отклонение** прогнозируемых 
+        процентных изменений цены закрытия.
 
+        **Стандартное отклонение** - это мера разброса данных вокруг среднего значения. 
+        В данном контексте оно показывает, насколько сильно колеблются прогнозируемые процентные 
+        изменения цены относительно своего среднего значения.
+
+        Расчётная формула: $$\sigma = \sqrt{\frac{1}{N-1} \sum_{i=1}^{N} (x_i - \bar{x})^2}$$
+
+        где:
+
+        * $\sigma$ - стандартное отклонение
+        * $N$ - количество прогнозируемых значений
+        * $x_i$ - i-ое прогнозируемое значение процентного изменения цены закрытия
+        * $\bar{x}$ - среднее значение всех прогнозируемых значений процентного изменения цены закрытия 
+    """)
+
+    st.markdown(f"""
+        ## Прогноз динамики изменения цены закрытия 
+    """)
     st.plotly_chart(return_forecast_plot(df_now, df_forecast), use_container_width=True)
 
+    st.markdown(f"""
+        ## Прогноз динамики цены закрытия 
+    """)
     st.plotly_chart(close_forecast_plot(df_btc_usdt, df_forecast_norm), use_container_width=True)
 
+    st.markdown(f"""
+        ## Распределение чисел прогноза изменения цены закрытия
+    """)
     st.plotly_chart(return_hist_plot(df_forecast, model="arch"), use_container_width=True)
 
 
@@ -26,11 +54,27 @@ def main():
 
     st.markdown("# ARCH Forecast")
 
+    st.markdown(r"""
+        На этой странице представлены прогнозы волатильности, рассчитанные с помощью модели 
+        **Autoregressive Conditional Heteroskedasticity (ARCH)**. Модель ARCH используется для 
+        прогнозирования будущей дисперсии временного ряда, основываясь на его прошлых значениях.
+        
+        Формула модели ARCH: $$\sigma_t^2 = \omega + \sum_{i=1}^{p} \alpha_i \epsilon_{t-i}^2$$
+        
+        где:
+
+        * $\sigma_t^2$ - условная дисперсия в момент времени $t$
+        * $\omega$ - константа
+        * $p$ - порядок модели ARCH
+        * $\alpha_i$ - коэффициент, отражающий влияние лаговой ошибки на текущую дисперсию
+        * $\epsilon_{t-i}$ - лаговая ошибка модели, описывающая разницу между фактическим и прогнозируемым значением ряда в момент времени $t-i$
+    """)
+
     st.session_state.initialized = False
 
     # Кнопка для перезапуска
     if st.button("Перезапустить расчёты", key="ARCH_forecast", type="primary"):
-        make_forecast()
+        st.rerun()
 
     # Выполнение функции при первой загрузке страницы
     if not st.session_state.initialized:
