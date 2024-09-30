@@ -11,14 +11,14 @@ INFLUX_BUCKET = "admin"
 INFLUX_ORG = "admin"
 
 
-def get_all_data_for_ml_models():
+def get_all_data_for_ml_models(count=300):
     # Инициализация клиента
     client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
 
     # Определение Flux запроса
     flux_query = f'''
     from(bucket: "admin")
-      |> range(start: -324h)  
+      |> range(start: -{count+24}h)  
       |> filter(fn: (r) => r["_measurement"] == "btc_usdt")
       |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
     '''

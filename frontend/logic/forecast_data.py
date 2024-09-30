@@ -4,8 +4,10 @@ import requests
 
 
 def get_data_for_forecast_page(model="arch"):
-    forecast_response = requests.get(f"http://backend:8000/api/forecast/{model}/")
-    historical_data_response = requests.get("http://backend:8000/api/get_btc_usdt_data/")
+    #forecast_response = requests.get(f"http://localhost:8000/api/forecast/{model}/")  # Для отладки
+    #historical_data_response = requests.get("http://localhost:8000/api/get_btc_usdt_data/")  # Для отладки
+    forecast_response = requests.get(f"http://backend:8000/api/forecast/{model}/")  # Для прода
+    historical_data_response = requests.get("http://backend:8000/api/get_btc_usdt_data/")  # Для прода
 
     if forecast_response.status_code == 200:
         forecast_data = forecast_response.json()
@@ -46,7 +48,7 @@ def get_data_for_forecast_page(model="arch"):
         df_forecast_norm.iloc[:, 9] = last_close_price * (1 + df_forecast_norm.iloc[:, 9] / 100).cumprod()
         df_forecast_norm.iloc[:, 10] = last_close_price * (1 + df_forecast_norm.iloc[:, 10] / 100).cumprod()
         df_forecast_norm.iloc[:, 11] = last_close_price * (1 + df_forecast_norm.iloc[:, 11] / 100).cumprod()
-    elif model in ["knn", "svr", "lightgbmregressor"]:
+    elif model in ["knn", "svr", "lightgbmregressor", "nlinear", "dlinear", "kan", "nbeats", "lstm"]:
         df_forecast_norm.iloc[:, 2] = last_close_price * (1 + df_forecast_norm.iloc[:, 2] / 100).cumprod()
         df_forecast_norm.iloc[:, 3] = last_close_price * (1 + df_forecast_norm.iloc[:, 3] / 100).cumprod()
         df_forecast_norm.iloc[:, 4] = last_close_price * (1 + df_forecast_norm.iloc[:, 4] / 100).cumprod()

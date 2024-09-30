@@ -37,7 +37,7 @@ def close_forecast_plot(df_btc_usdt, df_forecast_norm):
 def return_hist_plot(df_forecast, model):
     if model in ["arch", "garch"]:
         x = df_forecast.iloc[:, 1]
-    else:
+    elif model in ["knn", "svr", "lightgbmregressor", "nlinear", "dlinear", "kan", "nbeats", "lstm"]:
         x = df_forecast.iloc[:, 2]
 
     hist = go.Histogram(

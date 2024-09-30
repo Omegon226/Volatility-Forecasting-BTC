@@ -113,7 +113,7 @@ def main():
     st.session_state.initialized = False
 
     # Кнопка для перезапуска
-    if st.button("Перезапустить расчёты", key="GARCH_forecast", type="primary"):
+    if st.button("Перезапустить расчёты", key="LightGBM_forecast", type="primary"):
         st.rerun()
 
     # Выполнение функции при первой загрузке страницы

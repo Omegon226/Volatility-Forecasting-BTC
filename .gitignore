@@ -171,3 +171,5 @@ mlflow/mlflow.db
 /research/mlruns
 /backend/ml_models
 backend/forecast.png
+/backend/lightning_logs
+/research/lightning_logs

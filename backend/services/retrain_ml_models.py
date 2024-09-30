@@ -8,6 +8,9 @@ from statsforecast import StatsForecast
 from statsforecast.models import ARCH, GARCH
 from mlforecast import MLForecast
 from mlforecast.utils import PredictionIntervals
+from neuralforecast import NeuralForecast
+from neuralforecast.models import NLinear, DLinear, KAN, NBEATS, LSTM
+from neuralforecast.losses.pytorch import MQLoss
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 import lightgbm as lgb
@@ -25,16 +28,32 @@ mlflow.set_experiment("btc-usdt_volatility_experiment")
 
 def retrain_all_models():
     try:
-        ohlcv = get_all_data_for_ml_models()
+        ohlcv = get_all_data_for_ml_models(count=5000)
 
         # Создание выборки для обучения модели
-        train_df = pd.DataFrame(
+        train_df_300 = pd.DataFrame(
             columns=["ds", "y", "unique_id"]
         )
-        train_df["ds"] = ohlcv["date"].iloc[-324:-24]
-        train_df["y"] = ohlcv["close_pct_change"].iloc[-324:-24]
-        train_df["unique_id"] = 1
-        train_df = train_df.reset_index(drop=True)
+        train_df_300["ds"] = ohlcv["date"].iloc[-324:-24]
+        train_df_300["y"] = ohlcv["close_pct_change"].iloc[-324:-24]
+        train_df_300["unique_id"] = 1
+        train_df_300 = train_df_300.reset_index(drop=True)
+
+        train_df_1000 = pd.DataFrame(
+            columns=["ds", "y", "unique_id"]
+        )
+        train_df_1000["ds"] = ohlcv["date"].iloc[-1024:-24]
+        train_df_1000["y"] = ohlcv["close_pct_change"].iloc[-1024:-24]
+        train_df_1000["unique_id"] = 1
+        train_df_1000 = train_df_1000.reset_index(drop=True)
+
+        train_df_5000 = pd.DataFrame(
+            columns=["ds", "y", "unique_id"]
+        )
+        train_df_5000["ds"] = ohlcv["date"].iloc[-5024:-24]
+        train_df_5000["y"] = ohlcv["close_pct_change"].iloc[-5024:-24]
+        train_df_5000["unique_id"] = 1
+        train_df_5000 = train_df_5000.reset_index(drop=True)
 
         # Создание выборки для тестирования модели
         test_df = pd.DataFrame(
@@ -45,11 +64,16 @@ def retrain_all_models():
         test_df["unique_id"] = 1
         test_df = test_df.reset_index(drop=True)
 
-        retrain_arch_model(train_df, test_df)
-        retrain_garch_model(train_df, test_df)
-        retrain_svr_model(train_df, test_df)
-        retrain_lgbmregressor(train_df, test_df)
-        retrain_knn(train_df, test_df)
+        retrain_arch_model(train_df_300, test_df)
+        retrain_garch_model(train_df_300, test_df)
+        retrain_svr_model(train_df_300, test_df)
+        retrain_lgbmregressor(train_df_300, test_df)
+        retrain_knn(train_df_300, test_df)
+        retrain_nlinear(train_df_5000, test_df)
+        retrain_dlinear(train_df_5000, test_df)
+        retrain_kan(train_df_5000, test_df)
+        retrain_nbeats(train_df_5000, test_df)
+        retrain_lstm(train_df_5000, test_df)
 
     except Exception as error:
         raise error
@@ -340,4 +364,304 @@ def retrain_knn(train_df, test_df):
 
         # Сохранение модели
         with open("ml_models/knn.dill", "wb") as file:
+            dill.dump(model, file)
+
+
+def retrain_nlinear(train_df, test_df):
+    with mlflow.start_run(run_name=f'NLinear_{str(datetime.datetime.now())}') as run:
+        # Лучшие параметры полученные в исследовании
+        params = {
+            "h": 48,
+            "loss": MQLoss(level=[99, 95, 90, 75, 50]),
+            "random_seed": 1,
+            "input_size": 190,
+            "max_steps": 3852,
+            "batch_size": 73,
+            "learning_rate": 0.013543424178956737,
+        }
+
+        # Сохранение тегов
+        mlflow.set_tag("model_name", "NLinear")
+        mlflow.set_tag("model_type", "regression")
+        # Сохранение параметров
+        mlflow.log_params(params)
+
+        # Создание модели
+        model = NeuralForecast(models=[NLinear(**params)], freq='h')
+
+        # Обучение моедли
+        model.fit(train_df)
+
+        # Прогнозирование для test датасета
+        forecasts = model.predict()
+        forecasts = forecasts.reset_index()
+        current_columns = forecasts.columns.tolist()
+        current_columns[2] = current_columns[2].split("-")[0]
+        forecasts.columns = current_columns
+
+        # Рассчёт метрик
+        rmse = losses.rmse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mse = losses.mse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mae = losses.mae(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        smape = losses.smape(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+
+        # Сохранение метрик
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("SMAPE", smape)
+
+        # Сохранение визуализации
+        fig = plot_series(
+            pd.concat([train_df.iloc[-300:], test_df]),
+            forecasts_df=forecasts,
+            engine='matplotlib',
+            level=[99, 95, 90, 75, 50],
+        )
+        fig.savefig('forecast.png', bbox_inches='tight')
+        plt.close()
+        mlflow.log_artifact("forecast.png", "forecast")
+
+        # Сохранение модели
+        with open("ml_models/nlinear.dill", "wb") as file:
+            dill.dump(model, file)
+
+
+def retrain_dlinear(train_df, test_df):
+    with mlflow.start_run(run_name=f'DLinear_{str(datetime.datetime.now())}') as run:
+        # Лучшие параметры полученные в исследовании
+        params = {
+            "h": 48,
+            "loss": MQLoss(level=[99, 95, 90, 75, 50]),
+            "random_seed": 1,
+            "input_size": 382,
+            "max_steps": 3441,
+            "batch_size": 103,
+            "learning_rate": 0.03553664865176262,
+        }
+
+        # Сохранение тегов
+        mlflow.set_tag("model_name", "DLinear")
+        mlflow.set_tag("model_type", "regression")
+        # Сохранение параметров
+        mlflow.log_params(params)
+
+        # Создание модели
+        model = NeuralForecast(models=[DLinear(**params)], freq='h')
+
+        # Обучение моедли
+        model.fit(train_df)
+
+        # Прогнозирование для test датасета
+        forecasts = model.predict()
+        forecasts = forecasts.reset_index()
+        current_columns = forecasts.columns.tolist()
+        current_columns[2] = current_columns[2].split("-")[0]
+        forecasts.columns = current_columns
+
+        # Рассчёт метрик
+        rmse = losses.rmse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mse = losses.mse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mae = losses.mae(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        smape = losses.smape(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+
+        # Сохранение метрик
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("SMAPE", smape)
+
+        # Сохранение визуализации
+        fig = plot_series(
+            pd.concat([train_df.iloc[-300:], test_df]),
+            forecasts_df=forecasts,
+            engine='matplotlib',
+            level=[99, 95, 90, 75, 50],
+        )
+        fig.savefig('forecast.png', bbox_inches='tight')
+        plt.close()
+        mlflow.log_artifact("forecast.png", "forecast")
+
+        # Сохранение модели
+        with open("ml_models/dlinear.dill", "wb") as file:
+            dill.dump(model, file)
+
+
+def retrain_kan(train_df, test_df):
+    with mlflow.start_run(run_name=f'KAN_{str(datetime.datetime.now())}') as run:
+        # Лучшие параметры полученные в исследовании
+        params = {
+            "h": 48,
+            "loss": MQLoss(level=[99, 95, 90, 75, 50]),
+            "random_seed": 1,
+            "input_size": 480,
+            "max_steps": 662,
+            "batch_size": 108,
+            "learning_rate": 0.008924943318328573
+        }
+
+        # Сохранение тегов
+        mlflow.set_tag("model_name", "KAN")
+        mlflow.set_tag("model_type", "regression")
+        # Сохранение параметров
+        mlflow.log_params(params)
+
+        # Создание модели
+        model = NeuralForecast(models=[KAN(**params)], freq='h')
+
+        # Обучение моедли
+        model.fit(train_df)
+
+        # Прогнозирование для test датасета
+        forecasts = model.predict()
+        forecasts = forecasts.reset_index()
+        current_columns = forecasts.columns.tolist()
+        current_columns[2] = current_columns[2].split("-")[0]
+        forecasts.columns = current_columns
+
+        # Рассчёт метрик
+        rmse = losses.rmse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mse = losses.mse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mae = losses.mae(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        smape = losses.smape(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+
+        # Сохранение метрик
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("SMAPE", smape)
+
+        # Сохранение визуализации
+        fig = plot_series(
+            pd.concat([train_df.iloc[-300:], test_df]),
+            forecasts_df=forecasts,
+            engine='matplotlib',
+            level=[99, 95, 90, 75, 50],
+        )
+        fig.savefig('forecast.png', bbox_inches='tight')
+        plt.close()
+        mlflow.log_artifact("forecast.png", "forecast")
+
+        # Сохранение модели
+        with open("ml_models/kan.dill", "wb") as file:
+            dill.dump(model, file)
+
+
+def retrain_nbeats(train_df, test_df):
+    with mlflow.start_run(run_name=f'NBEATS_{str(datetime.datetime.now())}') as run:
+        # Лучшие параметры полученные в исследовании
+        params = {
+            "h": 48,
+            "loss": MQLoss(level=[99, 95, 90, 75, 50]),
+            "random_seed": 1,
+            "input_size": 455,
+            "max_steps": 400,
+            "batch_size": 55,
+            "learning_rate": 0.2696231301904332,
+        }
+
+        # Сохранение тегов
+        mlflow.set_tag("model_name", "NBEATS")
+        mlflow.set_tag("model_type", "regression")
+        # Сохранение параметров
+        mlflow.log_params(params)
+
+        # Создание модели
+        model = NeuralForecast(models=[NBEATS(**params)], freq='h')
+
+        # Обучение моедли
+        model.fit(train_df)
+
+        # Прогнозирование для test датасета
+        forecasts = model.predict()
+        forecasts = forecasts.reset_index()
+        current_columns = forecasts.columns.tolist()
+        current_columns[2] = current_columns[2].split("-")[0]
+        forecasts.columns = current_columns
+
+        # Рассчёт метрик
+        rmse = losses.rmse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mse = losses.mse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mae = losses.mae(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        smape = losses.smape(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+
+        # Сохранение метрик
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("SMAPE", smape)
+
+        # Сохранение визуализации
+        fig = plot_series(
+            pd.concat([train_df.iloc[-300:], test_df]),
+            forecasts_df=forecasts,
+            engine='matplotlib',
+            level=[99, 95, 90, 75, 50],
+        )
+        fig.savefig('forecast.png', bbox_inches='tight')
+        plt.close()
+        mlflow.log_artifact("forecast.png", "forecast")
+
+        # Сохранение модели
+        with open("ml_models/nbeats.dill", "wb") as file:
+            dill.dump(model, file)
+
+
+def retrain_lstm(train_df, test_df):
+    with mlflow.start_run(run_name=f'LSTM_{str(datetime.datetime.now())}') as run:
+        # Лучшие параметры полученные в исследовании
+        params = {
+            "h": 48,
+            "loss": MQLoss(level=[99, 95, 90, 75, 50]),
+            "random_seed": 1,
+            "input_size": 105,
+            "max_steps": 200,
+            "batch_size": 2,
+            "learning_rate": 0.09490673043669288,
+        }
+
+        # Сохранение тегов
+        mlflow.set_tag("model_name", "LSTM")
+        mlflow.set_tag("model_type", "regression")
+        # Сохранение параметров
+        mlflow.log_params(params)
+
+        # Создание модели
+        model = NeuralForecast(models=[LSTM(**params)], freq='h')
+
+        # Обучение моедли
+        model.fit(train_df)
+
+        # Прогнозирование для test датасета
+        forecasts = model.predict()
+        forecasts = forecasts.reset_index()
+        current_columns = forecasts.columns.tolist()
+        current_columns[2] = current_columns[2].split("-")[0]
+        forecasts.columns = current_columns
+
+        # Рассчёт метрик
+        rmse = losses.rmse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mse = losses.mse(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        mae = losses.mae(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+        smape = losses.smape(test_df["y"].values, forecasts.iloc[:, 2].values[:24])
+
+        # Сохранение метрик
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("MSE", mse)
+        mlflow.log_metric("MAE", mae)
+        mlflow.log_metric("SMAPE", smape)
+
+        # Сохранение визуализации
+        fig = plot_series(
+            pd.concat([train_df.iloc[-300:], test_df]),
+            forecasts_df=forecasts,
+            engine='matplotlib',
+            level=[99, 95, 90, 75, 50],
+        )
+        fig.savefig('forecast.png', bbox_inches='tight')
+        plt.close()
+        mlflow.log_artifact("forecast.png", "forecast")
+
+        # Сохранение модели
+        with open("ml_models/lstm.dill", "wb") as file:
             dill.dump(model, file)
