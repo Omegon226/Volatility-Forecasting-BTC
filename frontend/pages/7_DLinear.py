@@ -66,7 +66,7 @@ def main():
     """)
     with st.expander("Дополнительная информация о модели"):
         st.markdown(r"""
-            
+            Научная статья из Arxiv [Are Transformers Effective for Time Series Forecasting?](https://arxiv.org/abs/2205.13504)    
         """)
 
     st.session_state.initialized = False

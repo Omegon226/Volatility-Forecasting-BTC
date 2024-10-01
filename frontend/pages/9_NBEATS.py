@@ -69,7 +69,7 @@ def main():
     """)
     with st.expander("Дополнительная информация о модели"):
         st.markdown(r"""
-
+            Научная статья из Arxiv [N-BEATS neural network for mid-term electricity load forecasting](https://arxiv.org/abs/2009.11961) 
         """)
 
     st.session_state.initialized = False

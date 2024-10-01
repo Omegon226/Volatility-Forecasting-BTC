@@ -65,7 +65,7 @@ def main():
     """)
     with st.expander("Дополнительная информация о модели"):
         st.markdown(r"""
-
+            Научная статья из Arxiv [LSTM: A Search Space Odyssey](https://arxiv.org/abs/1503.04069) 
         """)
 
     st.session_state.initialized = False

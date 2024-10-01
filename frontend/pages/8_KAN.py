@@ -69,7 +69,7 @@ def main():
     """)
     with st.expander("Дополнительная информация о модели"):
         st.markdown(r"""
-
+            Научная статья из Arxiv [KAN: Kolmogorov-Arnold Networks](https://arxiv.org/abs/2404.19756)    
         """)
 
     st.session_state.initialized = False

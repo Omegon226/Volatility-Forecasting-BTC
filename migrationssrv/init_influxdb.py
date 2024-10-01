@@ -87,6 +87,9 @@ def main():
         df.sort_values('timestamp', inplace=True)
         df.reset_index(drop=True, inplace=True)
 
+        # Удаляем дубликаты
+        df = df.drop_duplicates(subset=['timestamp'], keep='last')
+
         # Вычисляем процентное изменение цены закрытия
         df['close_pct_change'] = df['close'].pct_change() * 100  # В процентах
         # Замена NaN на 0 для первого значения
